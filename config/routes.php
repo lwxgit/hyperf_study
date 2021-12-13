@@ -16,10 +16,14 @@ Router::addRoute(['GET', 'HEAD'], '/actual', 'App\Controller\LinController@index
 
 // 视图
 Router::addRoute(['GET', 'HEAD'], '/chat', 'App\Controller\View\ChatController@index');
+Router::addRoute(['GET', 'HEAD'], '/redis', 'App\Controller\View\RedisController@index');
 
 // 接口
 Router::addRoute(['POST'], '/game/build_bases', 'App\Controller\Api\GameController@buildBases');
 Router::addRoute(['POST'], '/game/test_coroutine', 'App\Controller\Api\GameController@testCoroutine');
+
+Router::addRoute(['POST'], '/redis/set', 'App\Controller\Api\RedisController@set');
+Router::addRoute(['GET'], '/redis/get', 'App\Controller\Api\RedisController@get');
 
 Router::addServer('ws', function () {
     Router::get('/', 'App\Controller\WebSocketController');
