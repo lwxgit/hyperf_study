@@ -1,4 +1,4 @@
-# 基于Hyperf框架各种使用
+# Hyperf 入门体验
 
 ## 安装与运行
 
@@ -21,4 +21,8 @@ composer install
 ```
 composer start
 ```
+
+### 更新日志
+
+- 2022/1/6 增加redis hash数据结构使用示例
 

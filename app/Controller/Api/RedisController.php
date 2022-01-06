@@ -36,6 +36,14 @@ class RedisController extends AbstractController
      */
     protected $service;
 
+    const REDIS_NOT_FOUND       = 0;
+    const REDIS_STRING          = 1;
+    const REDIS_SET             = 2;
+    const REDIS_LIST            = 3;
+    const REDIS_ZSET            = 4;
+    const REDIS_HASH            = 5;
+    const REDIS_STREAM          = 6;
+
     /**
      * @param RequestInterface $request
      * @param ResponseInterface $response
@@ -48,11 +56,27 @@ class RedisController extends AbstractController
         $container = ApplicationContext::getContainer();
         $redis = $container->get(Redis::class);
 
+        $type = $request->input('type',self::REDIS_STRING);
         $key = $request->input('key',null);
         $value = $request->input('value',null);
+        if(empty($key) || empty($value)){
+            $result = [
+                'code' => 400,
+                'msg'  => 'fail',
+            ];
+            return $response->json($result);
+        }
 
-
-        $res = $redis->set($key, $value);
+        switch ($type){
+            case self::REDIS_STRING:
+            default:
+                $res = $redis->set($key, $value);
+            break;
+            case self::REDIS_HASH:
+                $hashKey = $request->input('hash_key',null);
+                $res = $redis->hSet($key, $hashKey, $value);
+                break;
+        }
         $result = [
             'code' => 200,
             'msg'  => 'success',
@@ -72,12 +96,29 @@ class RedisController extends AbstractController
     {
         $container = ApplicationContext::getContainer();
         $redis = $container->get(Redis::class);
-
+        $type = $request->input('type',self::REDIS_STRING);
         $key = $request->input('key',null);
         $value = $request->input('value',null);
+        if(empty($key)){
+            $result = [
+                'code' => 400,
+                'msg'  => 'fail',
+            ];
+            return $response->json($result);
+        }
+
+        switch ($type){
+            case self::REDIS_STRING:
+            default:
+                $res = $redis->get($key);
+                break;
+            case self::REDIS_HASH:
+                $hashKey = $request->input('hash_key',null);
+                $res = $redis->hGet($key, $hashKey);
+                break;
+        }
 
 
-        $res = $redis->get($key);
         $result = [
             'code' => 200,
             'msg'  => 'success',

@@ -15,22 +15,23 @@
 <div>
     <div class="container">
         <h2>redis数据测试</h2>
-        <div class="row">
+        <div class="row row-string">
             <div class="col-lg-2 col-sm-2 col-md-2">
                 <p>String(字符串)</p>
+                <p class="console"></p>
             </div>
             <div class="col-lg-3 col-sm-3 col-md-3">
                 <form>
                     <div class="form-group">
                         <label for="string-key">key</label>
-                        <input type="text" class="form-control" id="string-key" placeholder="var">
+                        <input type="text" class="form-control string-key" placeholder="var">
                     </div>
                     <div class="form-group">
                         <label for="string-value">value</label>
-                        <input type="email" class="form-control" id="string-value" placeholder="data">
+                        <input type="text" class="form-control string-value" placeholder="data">
                     </div>
-                    <a class="btn btn-default" id="setting">设置</a>
-                    <a class="btn btn-default" id="getting">获取</a>
+                    <a class="btn btn-default setting">设置</a>
+                    <a class="btn btn-default getting">获取</a>
                 </form>
             </div>
             <div class="col-lg-3 col-sm-3 col-md-3">
@@ -42,6 +43,39 @@
                    2、将数据以二进制序列化的方式进行存储</p>
             </div>
         </div>
+        <div class="row row-hash">
+            <div class="col-lg-2 col-sm-2 col-md-2">
+                <p>Hash(字典)</p>
+                <p class="console"></p>
+            </div>
+            <div class="col-lg-3 col-sm-3 col-md-3">
+                <form>
+                    <div class="form-group">
+                        <label>hash-name</label>
+                        <input type="text" class="form-control hash-name" placeholder="var">
+                    </div>
+                    <div class="form-group">
+                        <label>hash-attr-name</label>
+                        <input type="text" class="form-control hash-attr-name" placeholder="var">
+                    </div>
+                    <div class="form-group">
+                        <label>hash-attr-value</label>
+                        <input type="text" class="form-control hash-attr-value" placeholder="data">
+                    </div>
+                    <a class="btn btn-default setting">设置</a>
+                    <a class="btn btn-default getting">获取</a>
+                </form>
+            </div>
+            <div class="col-lg-3 col-sm-3 col-md-3">
+                <p>适合存储对象，并且可以像数据库中update一个属性一样只修改某一项属性值(Memcached中需要取出整个字符串反序列化成对象修改完再序列化存回去)。
+                    大字典的扩容是比较耗时的，需要重新申请新的数组，然后将旧字典所有链表中的元素重新挂接到新的数组下面，这是一个O(n)级别的操作，作为单线程的Redis很难承受这样耗时的过程，所以Redis使用渐进式rehash小步搬迁虽然慢一点，但是肯定可以搬完。
+                    </p>
+            </div>
+            <div class="col-lg-3 col-sm-3 col-md-3">
+                <p>1、存储、读取、修改对象属性，比如：用户（姓名、性别、爱好），文章（标题、发布时间、作者、内容）
+                    2、添加购物车和获取购物车，keys的命名为 表名+主键+主键值</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -51,17 +85,50 @@
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 <script>
-    $('#setting').click(function () {
-        const key = $('#string-key').val()
-        const value = $('#string-value').val()
+    $('.row-string .setting').click(function () {
+        const key = $('.row-string .string-key').val()
+        const value = $('.row-string .string-value').val()
         $.post('/redis/set', {key,value},function (e) {
-            console.log(e)
+            $('.row-string .console').text(e.code)
         },'JSON')
     })
-    $('#getting').click(function () {
-        const key = $('#string-key').val()
+    $('.row-string .getting').click(function () {
+        const key = $('.row-string .string-key').val()
         $.get('/redis/get', {key},function (e) {
-            console.log(e)
+            // console.log(e)
+            const text = `${key}=${e.data}`
+            $('.row-string .console').text(text)
+        },'JSON')
+    })
+
+    $('.row-hash .setting').click(function () {
+        const hashName = $('.row-hash .hash-name').val()
+        const hashAttrName = $('.row-hash .hash-attr-name').val()
+        const hashAttrValue = $('.row-hash .hash-attr-value').val()
+        const postData = {
+            type: 5,
+            key: hashName,
+            value: hashAttrValue,
+            hash_key:hashAttrName
+        }
+
+        $.post('/redis/set', postData,function (e) {
+            $('.row-hash .console').text(e.code)
+        },'JSON')
+    })
+    $('.row-hash .getting').click(function () {
+        const hashName = $('.row-hash .hash-name').val()
+        const hashAttrName = $('.row-hash .hash-attr-name').val()
+        const hashAttrValue = $('.row-hash .hash-attr-value').val()
+        const postData = {
+            type: 5,
+            key: hashName,
+            hash_key:hashAttrName
+        }
+        $.get('/redis/get', postData,function (e) {
+            // console.log(e)
+            const text = `${hashName}[${hashAttrName}=${e.data}]`
+            $('.row-hash .console').text(text)
         },'JSON')
     })
 </script>
