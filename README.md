@@ -25,4 +25,5 @@ composer start
 ### 更新日志
 
 - 2022/1/6 增加redis hash数据结构使用示例
+- 2022/1/15 增加redis list数据结构使用示例
 

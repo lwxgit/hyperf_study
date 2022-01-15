@@ -76,6 +76,12 @@ class RedisController extends AbstractController
                 $hashKey = $request->input('hash_key',null);
                 $res = $redis->hSet($key, $hashKey, $value);
                 break;
+            case self::REDIS_LIST:
+                $rpushValue = $request->input('rpush_value',null);
+                $res = $redis->rPush($key, $rpushValue);
+                $lpushValue = $request->input('lpush_value',null);
+                $res = $redis->lPush($key, $lpushValue);
+                break;
         }
         $result = [
             'code' => 200,
@@ -115,6 +121,13 @@ class RedisController extends AbstractController
             case self::REDIS_HASH:
                 $hashKey = $request->input('hash_key',null);
                 $res = $redis->hGet($key, $hashKey);
+                break;
+            case self::REDIS_LIST:
+                $res = [
+                    'r' => $redis->rPop($key),
+                    'l' => $redis->lPop($key)
+                ];
+
                 break;
         }
 
