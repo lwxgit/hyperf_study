@@ -14,6 +14,7 @@ namespace App\Controller\Api;
 use App\Controller\AbstractController;
 use App\Controller\ServerController;
 use App\Job\UserBuildJob;
+use App\Service\OrderQueueService;
 use App\Service\QueueService;
 use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
@@ -36,16 +37,71 @@ class GameController extends AbstractController
     protected $service;
 
     /**
+     * @Inject
+     * @var OrderQueueService
+     */
+    protected $orderService;
+
+    /**
+     * 注解模式投递消息
      * @param ResponseInterface $response
      * @return Psr7ResponseInterface
      */
     public function buildBases(ResponseInterface $response): Psr7ResponseInterface
     {
+//        $data = [
+//            'key' => 'value',
+//            'time' => time()
+//        ];
+//        $this->service->example($data);
         $data = [
-            'key' => 'value',
+            'order_id' => '00001',
             'time' => time()
         ];
-        $this->service->example($data);
+        $this->orderService->consumption($data);
+        return $response->json($data);
+    }
+
+    /**
+     * 测试 协程
+     * @param ResponseInterface $response
+     * @return Psr7ResponseInterface
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    public function testCoroutine(ResponseInterface $response): Psr7ResponseInterface
+    {
+        $data = [
+            'key' => 'value',
+            'time' => time(),
+        ];
+        $container = ApplicationContext::getContainer();
+        $redis = $container->get(Redis::class);
+        $fd = $redis->get('50');
+
+        $webSocket = (new ServerController()); //
+//        run(function () use($fd, $webSocket) {
+        for ($c = 10; $c--;) {
+            Coroutine::create(function () use ($c, $fd, $webSocket, $data) {
+//                $tmp_filename = "/tmp/test-{$c}.php";
+//                usleep(500);
+                for ($n = 500; $n--;) {
+                    Db::table('users')->insert(
+                        ['email' => "john_{$c}_{$n}@example.com", 'votes' => 0]
+                    );
+//                    $self = file_get_contents(__FILE__);
+//                    file_put_contents($tmp_filename, $self);
+//                    assert(file_get_contents($tmp_filename) === $self);
+                    if($c == 0 && $n == 0){
+                        $webSocket->send((int) $fd, (time() - $data['time']));
+                    }
+                }
+//
+//                unlink($tmp_filename);
+            });
+        }
+
+        $data['cost_time'] = time() - $data['time'];
         return $response->json($data);
     }
 
@@ -55,47 +111,21 @@ class GameController extends AbstractController
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
-    public function testCoroutine(ResponseInterface $response): Psr7ResponseInterface
+    public function testOrdinary(ResponseInterface $response): Psr7ResponseInterface
     {
-
-        $id = Db::table('users')->insertGetId(
-            ['email' => 'john@example.com', 'votes' => 0]
-        );
         $data = [
             'key' => 'value',
             'time' => time(),
-//            'id' => $id
         ];
-
-        $container = ApplicationContext::getContainer();
-        $redis = $container->get(Redis::class);
-        $fd = $redis->get('50');
-
-        $webSocket = (new ServerController());
-//        run(function () use($fd, $webSocket) {
         for ($c = 50; $c--;) {
-
-            Coroutine::create(function () use ($c, $fd, $webSocket) {
-//                $tmp_filename = "/tmp/test-{$c}.php";
-//                usleep(500);
-                for ($n = 100; $n--;) {
-
-                    Db::table('users')->insert(
-                        ['email' => "john_{$c}_{$n}@example.com", 'votes' => 0]
-                    );
-//                    $self = file_get_contents(__FILE__);
-//                    file_put_contents($tmp_filename, $self);
-//                    assert(file_get_contents($tmp_filename) === $self);
-                }
-
-//                $webSocket->send((int) $fd, $c);
-//                unlink($tmp_filename);
-            });
-
-
+            for ($n = 100; $n--;) {
+                Db::table('users_copy')->insert(
+                    ['email' => "john_{$c}_{$n}@example.com", 'votes' => 0]
+                );
+            }
         }
-//        });
-//        $this->service->example($data);
+
+        $data['cost_time'] = time() - $data['time'];
         return $response->json($data);
     }
 }

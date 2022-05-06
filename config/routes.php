@@ -21,6 +21,7 @@ Router::addRoute(['GET', 'HEAD'], '/redis', 'App\Controller\View\RedisController
 // 接口
 Router::addRoute(['POST'], '/game/build_bases', 'App\Controller\Api\GameController@buildBases');
 Router::addRoute(['POST'], '/game/test_coroutine', 'App\Controller\Api\GameController@testCoroutine');
+Router::addRoute(['POST'], '/game/test_ordinary', 'App\Controller\Api\GameController@testOrdinary');
 
 Router::addRoute(['POST'], '/redis/set', 'App\Controller\Api\RedisController@set');
 Router::addRoute(['GET'], '/redis/get', 'App\Controller\Api\RedisController@get');
